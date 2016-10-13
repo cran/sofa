@@ -1,0 +1,192 @@
+<!--
+%\VignetteEngine{knitr}
+%\VignetteIndexEntry{sofa introduction}
+%\VignetteEncoding{UTF-8}
+-->
+
+```{r echo=FALSE}
+knitr::opts_chunk$set(
+	comment = "#>",
+	collapse = TRUE,
+	warning = FALSE,
+	message = FALSE
+)
+```
+
+sofa introduction
+=========
+
+CouchDB links
+
++ [Apache CouchDB](http://couchdb.apache.org/).
++ [CouchDB guide - online book and hard copy](http://guide.couchdb.org/).
+
+## CouchDB versions
+
+`sofa` is built targeting CouchDB v2 or greater.
+
+## Install CouchDB
+
+Go to <http://docs.couchdb.org/en/2.0.0/install/index.html> for instructions.
+
+## Start CouchDB in your terminal
+
+You can do this from anywhere in your directory. See <http://couchdb.apache.org> for instructions on how to install CouchDB. You can't use `sofa` functions without having couchdb running, either locally or on a remote server. If using a remote sever of course you don't need to have CouchDB running locally.
+
+```bash
+couchdb
+```
+
+You can interact with your CouchDB databases as well in your browser. Navigate to http://localhost:5984/_utils
+
+## Install sofa
+
+Stable version
+
+```{r eval=FALSE}
+install.packages("sofa")
+```
+
+Development version
+
+```{r eval=FALSE}
+devtools::install_github("rbison", "ropensci")
+```
+
+Load library
+
+```{r}
+library(sofa)
+```
+
+## sofa package API
+
+The folloing is a breakdown of the major groups of functions - note that not all are included.
+
+__create a CouchDB client connection__
+
+* `Cushion`
+
+__work with databases__
+
+* `db_alldocs`
+* `db_changes`
+* `db_compact`
+* `db_create`
+* `db_delete`
+* `db_explain`
+* `db_info`
+* `db_list`
+* `db_query`
+* `db_replicate`
+* `db_revisions`
+* `db_updates`
+
+__work with views/design documents__
+
+* `design_copy`
+* `design_create`
+* `design_create_`
+* `design_delete`
+* `design_get`
+* `design_head`
+* `design_info`
+* `design_search`
+
+__work with documents__
+
+* `doc_create`
+* `doc_delete`
+* `doc_get`
+* `doc_head`
+* `doc_update`
+* `db_bulk_create`
+* `db_bulk_update`
+
+## Create a connection client
+
+```{r}
+(x <- Cushion$new())
+```
+
+## Ping your server
+
+```{r}
+ping(x)
+```
+
+## Create a new database
+
+```{r echo=FALSE}
+if ("cats" %in% db_list(x)) {
+  invisible(db_delete(x, dbname = "cats"))
+}
+```
+
+```{r}
+db_create(x, 'cats')
+```
+
+## List databases
+
+```{r}
+db_list(x)
+```
+
+## Create a document
+
+```{r}
+doc1 <- '{"name": "leo", "color": "blue", "furry": true, "size": 1}'
+doc_create(x, dbname = "cats", doc1, docid = "bluecat")
+```
+
+and another!
+
+```{r}
+doc2 <- '{"name": "samson", "color": "red", "furry": false, "size": 3}'
+doc_create(x, dbname = "cats", doc2)
+```
+
+and one more, cause 3's company
+
+```{r}
+doc3 <- '{"name": "matilda", "color": "green", "furry": false, "size": 5}'
+doc_create(x, dbname = "cats", doc3)
+```
+
+Note how we used a document id in the first document creation, but
+not in the second. Using a document id is optional.
+
+## Changes feed
+
+```{r}
+db_changes(x, "cats")
+```
+
+## Search
+
+The simplest search just returns the documents.
+
+```{r}
+db_query(x, dbname = "cats", selector = list(`_id` = list(`$gt` = NULL)))$docs
+```
+
+Search for cats that are red
+
+```{r}
+db_query(x, dbname = "cats", selector = list(color = "red"))$docs
+```
+
+Search for cats that are furry
+
+```{r}
+db_query(x, dbname = "cats", selector = list(size = list(`$gt` = 2)))$docs
+```
+
+Return only certain fields
+
+```{r}
+db_query(x, dbname = "cats", 
+         selector = list(size = list(`$gt` = 2)),
+         fields = c("name", "color"))$docs
+```
