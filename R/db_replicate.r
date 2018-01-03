@@ -3,16 +3,16 @@
 #'
 #' @export
 #' @template return
-#' @param from Couch to replicate from. An object of class \code{Cushion}.
+#' @param from Couch to replicate from. An object of class [Cushion].
 #' Required.
-#' @param to Remote couch to replicate to. An object of class \code{Cushion}.
+#' @param to Remote couch to replicate to. An object of class [Cushion].
 #' Required.
 #' @param dbname (character) Database name. Required.
-#' @param createdb If \code{TRUE}, the function creates the db on the remote
+#' @param createdb If `TRUE`, the function creates the db on the remote
 #' server before uploading. The db has to exist before uploading, so either
-#' you do it separately or this fxn can do it for you. Default: \code{FALSE}
+#' you do it separately or this fxn can do it for you. Default: `FALSE`
 #' @param as (character) One of list (default) or json
-#' @param ... Curl args passed on to \code{\link[httr]{GET}}
+#' @param ... Curl args passed on to [crul::HttpClient]
 #' @examples \dontrun{
 #' ## create a connection
 #' (x <- Cushion$new())
@@ -29,11 +29,11 @@
 #'   port = NULL, user = 'ropensci', pwd = Sys.getenv('CLOUDANT_PWD'))
 #'
 #' ## do the replication
-#' db_replicate(x, z, dbname = "hello_earth", createdb = TRUE)
+#' db_replicate(x, z, dbname = "hello_earth")
 #'
 #' ## check changes on the remote
 #' db_list(z)
-#' changes(z, dbname = "hello_earth")
+#' db_changes(z, dbname = "hello_earth")
 #'
 #' ## make some changes on the remote
 #' doc_create(z, dbname = "hello_earth",
@@ -56,6 +56,6 @@ db_replicate <- function(from, to, dbname, createdb = FALSE, as = 'list', ...) {
   tourl <- file.path(to$make_url(), dbname)
   args <- list(source = unbox(dbname), target = unbox(cloudant_url(to, dbname)))
   message("Uploading ...")
-  sofa_POST(fromurl, as, content_type_json(), body = args,
-            encode = "json", from$get_headers(), ...)
+  sofa_POST(fromurl, as, body = args, encode = "json",
+            from$get_headers(), from$get_auth(), ...)
 }

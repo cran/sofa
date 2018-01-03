@@ -8,10 +8,10 @@ e.g., Cloudant, Iriscouch}
 db_replicate(from, to, dbname, createdb = FALSE, as = "list", ...)
 }
 \arguments{
-\item{from}{Couch to replicate from. An object of class \code{Cushion}.
+\item{from}{Couch to replicate from. An object of class \link{Cushion}.
 Required.}
 
-\item{to}{Remote couch to replicate to. An object of class \code{Cushion}.
+\item{to}{Remote couch to replicate to. An object of class \link{Cushion}.
 Required.}
 
 \item{dbname}{(character) Database name. Required.}
@@ -22,7 +22,7 @@ you do it separately or this fxn can do it for you. Default: \code{FALSE}}
 
 \item{as}{(character) One of list (default) or json}
 
-\item{...}{Curl args passed on to \code{\link[httr]{GET}}}
+\item{...}{Curl args passed on to \link[crul:HttpClient]{crul::HttpClient}}
 }
 \value{
 JSON as a character string or a list (determined by the
@@ -49,11 +49,11 @@ z <- Cushion$new(host = "ropensci.cloudant.com", transport = 'https',
   port = NULL, user = 'ropensci', pwd = Sys.getenv('CLOUDANT_PWD'))
 
 ## do the replication
-db_replicate(x, z, dbname = "hello_earth", createdb = TRUE)
+db_replicate(x, z, dbname = "hello_earth")
 
 ## check changes on the remote
 db_list(z)
-changes(z, dbname = "hello_earth")
+db_changes(z, dbname = "hello_earth")
 
 ## make some changes on the remote
 doc_create(z, dbname = "hello_earth",
@@ -69,4 +69,3 @@ doc_get(z, dbname = "hello_earth", docid='R_rules')
 db_delete(z, 'hello_earth')
 }
 }
-

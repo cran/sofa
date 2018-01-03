@@ -5,18 +5,15 @@
 #' @template return
 #' @param dbname (character) Database name. required.
 #' @param design (character) Design document name. this is the design name
-#' without \strong{_design/}, which is prepended internally. required.
-#' @param design_to (character) Design document name. this is the design name
-#' without \strong{_design/}, which is prepended internally. required for
-#' \code{design_copy}
-#' @param fxnname (character) A function name. required for \code{view_put}
-#' and \code{view_put_}
+#' without `_design/`, which is prepended internally. required.
+#' @param fxnname (character) A function name. required for `view_put`
+#' and `view_put_`
 #' @param key,value (character) a key and value, see Examples and Details
-#' @param fxn (character) a javascript function. required for \code{view_put_}
-#' @details \code{design_create} is a slightly easier interface to creating
+#' @param fxn (character) a javascript function. required for `view_put_`
+#' @details `design_create` is a slightly easier interface to creating
 #' design documents; it just asks for a function name, the key and a
 #' value, then we create the function for you internally. TO have more
-#' flexibility use \code{view_put_} (with underscore on the end) to write the
+#' flexibility use `view_put_` (with underscore on the end) to write the
 #' function yourself.
 #' @examples \dontrun{
 #' (x <- Cushion$new())
@@ -60,7 +57,7 @@
 #' design_get(x, dbname='omdb', design='view5')
 #'
 #' # Search using a view
-#' res <- view_search(x, dbname='omdb', design='view2')
+#' res <- design_search(x, dbname='omdb', design='view2')
 #' head(
 #'   do.call(
 #'     "rbind.data.frame",
@@ -68,16 +65,13 @@
 #'   )
 #' )
 #'
-#' res <- view_search(x, dbname='omdb', design='view5')
+#' res <- design_search(x, dbname='omdb', design='view5')
 #' head(
 #'   structure(do.call(
 #'     "rbind.data.frame",
 #'     lapply(res$rows, function(x) x$value)
 #'   ), .Names = c('Country', 'imdbRating'))
 #' )
-#'
-#' # copy a design doc to another design doc
-#' design_copy(x, dbname = "omdb", design = "view2", design_to = "view22")
 #' }
 
 #' @export
@@ -92,13 +86,13 @@ design_create <- function(cushion, dbname, design, fxnname, key = "null",
 #' @rdname design
 design_create_ <- function(cushion, dbname, design, fxnname, fxn, as = 'list', ...) {
   check_cushion(cushion)
-  url <- cushion$make_url()
-  call_ <- file.path(url, dbname, "_design", design)
+  url <- file.path(cushion$make_url(), dbname, "_design", design)
   doc2 <- paste0('{"_id":',
                  '"_design/', design, '",',
                  '"views": {', '"', fxnname,
                  '": {', '"map":"', fxn ,'"}}}')
-  sofa_PUT(call_, as, body = doc2, cushion$get_headers(), ...)
+  sofa_PUT(url, as, body = doc2,
+    headers = cushion$get_headers(), auth = cushion$get_auth(), ...)
 }
 
 #' @export
@@ -124,7 +118,8 @@ design_get <- function(cushion, dbname, design, as='list', ...) {
 design_head <- function(cushion, dbname, design, ...) {
   check_cushion(cushion)
   url <- cushion$make_url()
-  sofa_HEAD(file.path(url, dbname, "_design", design), cushion$get_headers(), ...)
+  sofa_HEAD(file.path(url, dbname, "_design", design),
+            cushion$get_headers(), cushion$get_auth(), ...)
 }
 
 #' @export
@@ -135,12 +130,10 @@ design_info <- function(cushion, dbname, design, ...) {
   sofa_GET(file.path(url, dbname, "_design", design, "_info"), cushion$get_headers(), ...)
 }
 
-#' @export
-#' @rdname design
-design_copy <- function(cushion, dbname, design, design_to, as='list', ...) {
-  check_cushion(cushion)
-  url <- cushion$make_url()
-  call_ <- file.path(url, dbname, "_design", design)
-  sofa_COPY(call_, as, cushion$get_headers(),
-            add_headers(DESTINATION = paste0("_design/", design_to)), ...)
-}
+# design_copy <- function(cushion, dbname, design, design_to, as='list', ...) {
+#   check_cushion(cushion)
+#   url <- cushion$make_url()
+#   call_ <- file.path(url, dbname, "_design", design)
+#   sofa_COPY(call_, as, cushion$get_headers(),
+#             add_headers(DESTINATION = paste0("_design/", design_to)), ...)
+# }

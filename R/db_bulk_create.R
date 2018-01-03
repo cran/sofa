@@ -13,16 +13,15 @@
 #'
 #' @details Note that row.names are dropped from data.frame inputs.
 #'
-#' @return Either a list or json (depending on \code{as} parameter), with
+#' @return Either a list or json (depending on `as` parameter), with
 #' each element an array of key:value pairs:
-#' \itemize{
-#'  \item ok - whether creation was successful
-#'  \item id - the document id
-#'  \item rev - the revision id
-#' }
+#'
+#' - ok - whether creation was successful
+#' - id - the document id
+#' - rev - the revision id
 #'
 #' @examples \dontrun{
-#' # initialize a couchdb connection
+#' # initialize a CouchDB connection
 #' (x <- Cushion$new())
 #'
 #' # From a data.frame
@@ -95,7 +94,8 @@ db_bulk_create_.character <- function(doc, cushion, dbname, docid = NULL,
                                    how = 'rows', as = 'list', ...) {
   url <- sprintf("%s/%s", cushion$make_url(), dbname)
   body <- sprintf('{"docs": [%s]}', paste0(doc, collapse = ", "))
-  sofa_bulk(file.path(url, "_bulk_docs"), as, body = body, cushion$get_headers(), ...)
+  sofa_bulk(file.path(url, "_bulk_docs"), as, body = body,
+            cushion$get_headers(), cushion$get_auth(), ...)
 }
 
 #' @export
@@ -103,7 +103,8 @@ db_bulk_create_.list <- function(doc, cushion, dbname, docid = NULL,
                                   how = 'rows', as = 'list', ...) {
   url <- sprintf("%s/%s", cushion$make_url(), dbname)
   body <- jsonlite::toJSON(list(docs = doc), auto_unbox = TRUE)
-  sofa_bulk(file.path(url, "_bulk_docs"), as, body = body, cushion$get_headers(), ...)
+  sofa_bulk(file.path(url, "_bulk_docs"), as, body = body,
+            cushion$get_headers(), cushion$get_auth(), ...)
 }
 
 #' @export
@@ -113,16 +114,19 @@ db_bulk_create_.data.frame <- function(doc, cushion, dbname, docid = NULL,
   url <- sprintf("%s/%s", cushion$make_url(), dbname)
   each <- unname(parse_df(doc, how = how, tojson = FALSE))
   body <- jsonlite::toJSON(list(docs = each), auto_unbox = TRUE)
-  sofa_bulk(file.path(url, "_bulk_docs"), as, body = body, cushion$get_headers(), ...)
+  sofa_bulk(file.path(url, "_bulk_docs"), as, body = body,
+            cushion$get_headers(), cushion$get_auth(), ...)
 }
 
-sofa_bulk <- function(url, as, body, ...) {
-  res <- POST(url, content_type_json(), body = body, ...)
+sofa_bulk <- function(url, as, body, headers, auth = NULL, ...) {
+  cli <- crul::HttpClient$new(url = url, headers = c(ct_json, headers),
+                              opts = sc(c(auth, list(...))))
+  res <- cli$post(body = body)
   bulk_handle(res, as)
 }
 
 bulk_handle <- function(x, as) {
   stop_status(x)
-  tt <- content(x, "text", encoding = "UTF-8")
+  tt <- x$parse("UTF-8")
   if (as == 'json') tt else jsonlite::fromJSON(tt, FALSE)
 }

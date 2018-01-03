@@ -3,9 +3,9 @@
 \name{attachments}
 \alias{attachments}
 \alias{doc_attach_create}
-\alias{doc_attach_delete}
-\alias{doc_attach_get}
 \alias{doc_attach_info}
+\alias{doc_attach_get}
+\alias{doc_attach_delete}
 \title{Work with attachments}
 \usage{
 doc_attach_create(cushion, dbname, docid, attachment, attname, as = "list",
@@ -18,21 +18,19 @@ doc_attach_get(cushion, dbname, docid, attname, type = "raw", ...)
 doc_attach_delete(cushion, dbname, docid, attname, as = "list", ...)
 }
 \arguments{
-\item{cushion}{A \code{Cushion} object. Required.}
+\item{cushion}{A \code{\link{Cushion}} object. Required.}
 
-\item{dbname}{(charcter) Database name. Required.}
+\item{dbname}{(character) Database name. Required.}
 
-\item{docid}{(charcter) Document ID. Required.}
+\item{docid}{(character) Document ID. Required.}
 
-\item{attachment}{(charcter) A file name. Required.}
+\item{attachment}{(character) A file name. Required.}
 
-\item{attname}{(charcter) Attachment name. Required.}
+\item{attname}{(character) Attachment name. Required.}
 
 \item{as}{(character) One of list (default) or json}
 
-\item{...}{Curl args passed on to one of the HTTP verbs (e.g,.
-\code{\link[httr]{GET}}, \code{\link[httr]{POST}}, \code{\link[httr]{PUT}},
-etc.)}
+\item{...}{Curl args passed on to \code{\link[crul]{HttpClient}}}
 
 \item{type}{(character) one of raw (default) or text. required.}
 }
@@ -46,12 +44,12 @@ Work with attachments
 \details{
 Methods:
 \itemize{
- \item doc_attach_create - create an attachment
- \item doc_attach_info - get info (headers) for an attachment
- \item doc_attach_get - get an attachment. this method does not attempt
- to read the object into R, but only gets the raw bytes or plain
- text. See examples for how to read some attachment types
- \item doc_attach_delete - delete and attachment
+\item \code{doc_attach_create} - create an attachment
+\item \code{doc_attach_info} - get info (headers) for an attachment
+\item \code{doc_attach_get} - get an attachment. this method does not attempt
+to read the object into R, but only gets the raw bytes or plain
+text. See examples for how to read some attachment types
+\item \code{doc_attach_delete} - delete and attachment
 }
 }
 \examples{
@@ -98,7 +96,7 @@ doc_attach_info(x, "drinksdb", docid="asoda", attname="plot.pdf")
 
 # get an attachment (GET request)
 res <- doc_attach_get(x, "drinksdb", docid="asoda",
-  attname="mtcarstable.csv", type = "text")
+  attname="mtcarstable.csv", as = "text")
 read.csv(text = res)
 doc_attach_get(x, "drinksdb", docid="asoda", attname="img.png")
 doc_attach_get(x, "drinksdb", docid="asoda", attname="plot.pdf")
@@ -109,4 +107,3 @@ doc_attach_delete(x, "drinksdb", docid="asoda", attname="img.png")
 doc_attach_delete(x, "drinksdb", docid="asoda", attname="plot.pdf")
 }
 }
-

@@ -7,17 +7,15 @@
 doc_delete(cushion, dbname, docid, as = "list", ...)
 }
 \arguments{
-\item{cushion}{A \code{Cushion} object. Required.}
+\item{cushion}{A \code{\link{Cushion}} object. Required.}
 
-\item{dbname}{Database name. (charcter)}
+\item{dbname}{Database name. (character)}
 
 \item{docid}{Document ID (character)}
 
 \item{as}{(character) One of list (default) or json}
 
-\item{...}{Curl args passed on to one of the HTTP verbs (e.g,.
-\code{\link[httr]{GET}}, \code{\link[httr]{POST}}, \code{\link[httr]{PUT}},
-etc.)}
+\item{...}{Curl args passed on to \code{\link[crul]{HttpClient}}}
 }
 \value{
 JSON as a character string or a list (determined by the
@@ -46,4 +44,3 @@ doc_create(x, dbname="sofadb", doc=doc3, docid="newxml")
 doc_delete(x, dbname="sofadb", docid="wrongname")
 }
 }
-

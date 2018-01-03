@@ -2,7 +2,7 @@
 #'
 #' @export
 #' @template all
-#' @param dbname Database name. (charcter)
+#' @param dbname Database name. (character)
 #' @param descending Return in descending order? (logical)
 #' @param startkey Document ID to start at. (character)
 #' @param endkey Document ID to end at. (character)
@@ -21,19 +21,16 @@
 #' @description Of course it doesn't make much sense to use certain options in
 #' _changes. For example, using feed=longpoll or continuous doesn't make much
 #' sense within R itself.
-#' @return Either a list of json (depending on \code{as} parameter), with
+#' @return Either a list of json (depending on `as` parameter), with
 #' keys:
-#' \itemize{
-#'  \item results - Changes made to a database, length 0 if no changes.
+#'
+#' - results - Changes made to a database, length 0 if no changes.
 #'  Each of these has:
-#'  \itemize{
-#'   \item changes - List of document`s leafs with single field rev
-#'   \item id - Document ID
-#'   \item seq - Update sequence
-#'  }
-#'  \item last_seq - Last change update sequence
-#'  \item pending - Count of remaining items in the feed
-#' }
+#'   - changes - List of document`s leafs with single field rev
+#'   - id - Document ID
+#'   - seq - Update sequence
+#' - last_seq - Last change update sequence
+#' - pending - Count of remaining items in the feed
 #'
 #' @examples \dontrun{
 #' (x <- Cushion$new())
@@ -58,9 +55,9 @@
 #' # as JSON
 #' db_changes(x, dbname="leothelion", as='json')
 #' }
-db_changes <- function(cushion, dbname, descending=NULL, startkey=NULL, endkey=NULL,
-  since=NULL, limit=NULL, include_docs=NULL, feed="normal", heartbeat=NULL,
-  filter=NULL, as='list', ...) {
+db_changes <- function(cushion, dbname, descending=NULL, startkey=NULL,
+  endkey=NULL, since=NULL, limit=NULL, include_docs=NULL, feed="normal",
+  heartbeat=NULL, filter=NULL, as='list', ...) {
 
   check_cushion(cushion)
   args <- sc(list(descending=descending,startkey=startkey,endkey=endkey,
@@ -68,5 +65,7 @@ db_changes <- function(cushion, dbname, descending=NULL, startkey=NULL, endkey=N
                   heartbeat=heartbeat,filter=filter))
 
   call_ <- sprintf("%s/%s/_changes", cushion$make_url(), dbname)
-  sofa_GET(call_, as, query = args, cushion$get_headers(), ...)
+  sofa_GET(call_, as, query = args,
+           cushion$get_headers(),
+           cushion$get_auth(), ...)
 }

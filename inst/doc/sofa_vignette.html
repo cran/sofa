@@ -209,29 +209,7 @@ hr {
 
 <h1>sofa introduction</h1>
 
-<p>CouchDB links</p>
-
-<ul>
-<li><a href="http://couchdb.apache.org/">Apache CouchDB</a>.</li>
-<li><a href="http://guide.couchdb.org/">CouchDB guide - online book and hard copy</a>.</li>
-</ul>
-
-<h2>CouchDB versions</h2>
-
-<p><code>sofa</code> is built targeting CouchDB v2 or greater.</p>
-
-<h2>Install CouchDB</h2>
-
-<p>Go to <a href="http://docs.couchdb.org/en/2.0.0/install/index.html">http://docs.couchdb.org/en/2.0.0/install/index.html</a> for instructions.</p>
-
-<h2>Start CouchDB in your terminal</h2>
-
-<p>You can do this from anywhere in your directory. See <a href="http://couchdb.apache.org">http://couchdb.apache.org</a> for instructions on how to install CouchDB. You can&#39;t use <code>sofa</code> functions without having couchdb running, either locally or on a remote server. If using a remote sever of course you don&#39;t need to have CouchDB running locally.</p>
-
-<pre><code class="bash">couchdb
-</code></pre>
-
-<p>You can interact with your CouchDB databases as well in your browser. Navigate to http://localhost:5984/_utils</p>
+<p>Make sure your CouchDB installation is running.</p>
 
 <h2>Install sofa</h2>
 
@@ -242,7 +220,7 @@ hr {
 
 <p>Development version</p>
 
-<pre><code class="r">devtools::install_github(&quot;rbison&quot;, &quot;ropensci&quot;)
+<pre><code class="r">devtools::install_github(&quot;ropensci/sofa&quot;)
 </code></pre>
 
 <p>Load library</p>
@@ -252,7 +230,7 @@ hr {
 
 <h2>sofa package API</h2>
 
-<p>The folloing is a breakdown of the major groups of functions - note that not all are included.</p>
+<p>The following is a breakdown of the major groups of functions - note that not all are included.</p>
 
 <p><strong>create a CouchDB client connection</strong></p>
 
@@ -274,13 +252,14 @@ hr {
 <li><code>db_query</code></li>
 <li><code>db_replicate</code></li>
 <li><code>db_revisions</code></li>
-<li><code>db_updates</code></li>
+<li><code>db_index</code></li>
+<li><code>db_index_create</code></li>
+<li><code>db_index_delete</code></li>
 </ul>
 
 <p><strong>work with views/design documents</strong></p>
 
 <ul>
-<li><code>design_copy</code></li>
 <li><code>design_create</code></li>
 <li><code>design_create_</code></li>
 <li><code>design_delete</code></li>
@@ -288,6 +267,7 @@ hr {
 <li><code>design_head</code></li>
 <li><code>design_info</code></li>
 <li><code>design_search</code></li>
+<li><code>design_search_many</code></li>
 </ul>
 
 <p><strong>work with documents</strong></p>
@@ -300,6 +280,10 @@ hr {
 <li><code>doc_update</code></li>
 <li><code>db_bulk_create</code></li>
 <li><code>db_bulk_update</code></li>
+<li><code>doc_attach_create</code></li>
+<li><code>doc_attach_delete</code></li>
+<li><code>doc_attach_get</code></li>
+<li><code>doc_attach_info</code></li>
 </ul>
 
 <h2>Create a connection client</h2>
@@ -322,7 +306,12 @@ hr {
 #&gt; [1] &quot;Welcome&quot;
 #&gt; 
 #&gt; $version
-#&gt; [1] &quot;2.0.0&quot;
+#&gt; [1] &quot;2.1.1&quot;
+#&gt; 
+#&gt; $features
+#&gt; $features[[1]]
+#&gt; [1] &quot;scheduler&quot;
+#&gt; 
 #&gt; 
 #&gt; $vendor
 #&gt; $vendor$name
@@ -339,18 +328,7 @@ hr {
 <h2>List databases</h2>
 
 <pre><code class="r">db_list(x)
-#&gt;  [1] &quot;acouch&quot;          &quot;alm_couchdb&quot;     &quot;aqijhfcntb&quot;     
-#&gt;  [4] &quot;auhgmimrls&quot;      &quot;avarpnvaia&quot;      &quot;bhlhhiwwph&quot;     
-#&gt;  [7] &quot;bulktest&quot;        &quot;bvuizcrdoy&quot;      &quot;cats&quot;           
-#&gt; [10] &quot;dpufyoigqf&quot;      &quot;drinksdb&quot;        &quot;fiadbzwmos&quot;     
-#&gt; [13] &quot;flxsqfkzdf&quot;      &quot;gtogmgbsjx&quot;      &quot;helloworld&quot;     
-#&gt; [16] &quot;jebvagbrqz&quot;      &quot;jxdktgmdsb&quot;      &quot;leothelion&quot;     
-#&gt; [19] &quot;leothelion-json&quot; &quot;lgzzmzugkm&quot;      &quot;lhkfptkfel&quot;     
-#&gt; [22] &quot;lyluootgvi&quot;      &quot;namcicfbjl&quot;      &quot;nqidfcpojk&quot;     
-#&gt; [25] &quot;omdb&quot;            &quot;sofadb&quot;          &quot;spyrzxffqv&quot;     
-#&gt; [28] &quot;sss&quot;             &quot;testing123&quot;      &quot;trkhxkopvd&quot;     
-#&gt; [31] &quot;uwvtpnehdu&quot;      &quot;vswtlxhcxe&quot;      &quot;wqefduwgpu&quot;     
-#&gt; [34] &quot;xhalvmxmud&quot;      &quot;xwrcjghvxx&quot;      &quot;zocaqeleye&quot;
+#&gt; [1] &quot;cats&quot;       &quot;flights&quot;    &quot;testing123&quot;
 </code></pre>
 
 <h2>Create a document</h2>
@@ -375,7 +353,7 @@ doc_create(x, dbname = &quot;cats&quot;, doc2)
 #&gt; [1] TRUE
 #&gt; 
 #&gt; $id
-#&gt; [1] &quot;e6bb43092edaf8fd987434b8a30cfbdf&quot;
+#&gt; [1] &quot;901e4bf214fb50db456d3ef8ec000cfd&quot;
 #&gt; 
 #&gt; $rev
 #&gt; [1] &quot;1-08aef850a23f5ff95869c9cf5d9604dc&quot;
@@ -383,20 +361,22 @@ doc_create(x, dbname = &quot;cats&quot;, doc2)
 
 <p>and one more, cause 3&#39;s company</p>
 
-<pre><code class="r">doc3 &lt;- &#39;{&quot;name&quot;: &quot;matilda&quot;, &quot;color&quot;: &quot;green&quot;, &quot;furry&quot;: false, &quot;size&quot;: 5}&#39;
+<pre><code class="r">doc3 &lt;- &#39;{&quot;name&quot;: &quot;matilda&quot;, &quot;color&quot;: &quot;green&quot;, &quot;furry&quot;: false, &quot;size&quot;: 5, &quot;age&quot;: 2}&#39;
 doc_create(x, dbname = &quot;cats&quot;, doc3)
 #&gt; $ok
 #&gt; [1] TRUE
 #&gt; 
 #&gt; $id
-#&gt; [1] &quot;e6bb43092edaf8fd987434b8a30d02c1&quot;
+#&gt; [1] &quot;901e4bf214fb50db456d3ef8ec00167e&quot;
 #&gt; 
 #&gt; $rev
-#&gt; [1] &quot;1-73443af61b0149e4c3e138b870e72602&quot;
+#&gt; [1] &quot;1-953d3cfbbebb977fb75940c2bb0c93a1&quot;
 </code></pre>
 
 <p>Note how we used a document id in the first document creation, but
-not in the second. Using a document id is optional.</p>
+not in the second and third. Using a document id is optional.</p>
+
+<p>Also note that the third document has an additional field &ldquo;age&rdquo;.</p>
 
 <h2>Changes feed</h2>
 
@@ -404,52 +384,52 @@ not in the second. Using a document id is optional.</p>
 #&gt; $results
 #&gt; $results[[1]]
 #&gt; $results[[1]]$seq
-#&gt; [1] &quot;1-g1AAAAB5eJzLYWBgYMpgTmEQTM4vTc5ISXLIyU9OzMnILy7JAUklMiTV____PyuDOZExFyjAbpyWkmxsZIRNAx5j8liAJEMDkPoPMi2RIQsAxs4mmQ&quot;
+#&gt; [1] &quot;1-g1AAAAB5eJzLYWBgYMpgTmEQTM4vTc5ISXLIyU9OzMnILy7JAUklMiTV____PyuRAY-iPBYgydAApP6D1GYwJzLmAgXYk9NMkpOMTLHpywIA9BAmyw&quot;
 #&gt; 
 #&gt; $results[[1]]$id
-#&gt; [1] &quot;e6bb43092edaf8fd987434b8a30d02c1&quot;
+#&gt; [1] &quot;bluecat&quot;
 #&gt; 
 #&gt; $results[[1]]$changes
 #&gt; $results[[1]]$changes[[1]]
 #&gt; $results[[1]]$changes[[1]]$rev
-#&gt; [1] &quot;1-73443af61b0149e4c3e138b870e72602&quot;
+#&gt; [1] &quot;1-41784f190c466d990684003a958c9f39&quot;
 #&gt; 
 #&gt; 
 #&gt; 
 #&gt; 
 #&gt; $results[[2]]
 #&gt; $results[[2]]$seq
-#&gt; [1] &quot;2-g1AAAACbeJzLYWBgYMpgTmEQTM4vTc5ISXLIyU9OzMnILy7JAUklMiTV____PyuDOZExFyjAbpyWkmxsZIRNAx5j8liAJEMDkPqPYpqRhYmxabIBNn1ZAGwiMGg&quot;
+#&gt; [1] &quot;2-g1AAAACbeJzLYWBgYMpgTmEQTM4vTc5ISXLIyU9OzMnILy7JAUklMiTV____PyuDOZExFyjAnpRonpxsYolNAx5j8liAJEMDkPqPYlpymklykpEpNn1ZAJEOMS4&quot;
 #&gt; 
 #&gt; $results[[2]]$id
-#&gt; [1] &quot;bluecat&quot;
+#&gt; [1] &quot;901e4bf214fb50db456d3ef8ec000cfd&quot;
 #&gt; 
 #&gt; $results[[2]]$changes
 #&gt; $results[[2]]$changes[[1]]
 #&gt; $results[[2]]$changes[[1]]$rev
-#&gt; [1] &quot;1-41784f190c466d990684003a958c9f39&quot;
+#&gt; [1] &quot;1-08aef850a23f5ff95869c9cf5d9604dc&quot;
 #&gt; 
 #&gt; 
 #&gt; 
 #&gt; 
 #&gt; $results[[3]]
 #&gt; $results[[3]]$seq
-#&gt; [1] &quot;3-g1AAAACbeJzLYWBgYMpgTmEQTM4vTc5ISXLIyU9OzMnILy7JAUklMiTV____PyuDOZExFyjAbpyWkmxsZIRNAx5j8liAJEMDkPoPNY0JbJqRhYmxabIBNn1ZAGxEMGk&quot;
+#&gt; [1] &quot;3-g1AAAACbeJzLYWBgYMpgTmEQTM4vTc5ISXLIyU9OzMnILy7JAUklMiTV____PyuDOZEpFyjAnpRonpxsYolNAx5j8liAJEMDkPoPNY0RbFpymklykpEpNn1ZAJF-MS8&quot;
 #&gt; 
 #&gt; $results[[3]]$id
-#&gt; [1] &quot;e6bb43092edaf8fd987434b8a30cfbdf&quot;
+#&gt; [1] &quot;901e4bf214fb50db456d3ef8ec00167e&quot;
 #&gt; 
 #&gt; $results[[3]]$changes
 #&gt; $results[[3]]$changes[[1]]
 #&gt; $results[[3]]$changes[[1]]$rev
-#&gt; [1] &quot;1-08aef850a23f5ff95869c9cf5d9604dc&quot;
+#&gt; [1] &quot;1-953d3cfbbebb977fb75940c2bb0c93a1&quot;
 #&gt; 
 #&gt; 
 #&gt; 
 #&gt; 
 #&gt; 
 #&gt; $last_seq
-#&gt; [1] &quot;3-g1AAAACbeJzLYWBgYMpgTmEQTM4vTc5ISXLIyU9OzMnILy7JAUklMiTV____PyuDOZExFyjAbpyWkmxsZIRNAx5j8liAJEMDkPoPNY0JbJqRhYmxabIBNn1ZAGxEMGk&quot;
+#&gt; [1] &quot;3-g1AAAACbeJzLYWBgYMpgTmEQTM4vTc5ISXLIyU9OzMnILy7JAUklMiTV____PyuDOZEpFyjAnpRonpxsYolNAx5j8liAJEMDkPoPNY0RbFpymklykpEpNn1ZAJF-MS8&quot;
 #&gt; 
 #&gt; $pending
 #&gt; [1] 0
@@ -462,62 +442,65 @@ not in the second. Using a document id is optional.</p>
 <pre><code class="r">db_query(x, dbname = &quot;cats&quot;, selector = list(`_id` = list(`$gt` = NULL)))$docs
 #&gt; [[1]]
 #&gt; [[1]]$`_id`
-#&gt; [1] &quot;bluecat&quot;
+#&gt; [1] &quot;901e4bf214fb50db456d3ef8ec000cfd&quot;
 #&gt; 
 #&gt; [[1]]$`_rev`
-#&gt; [1] &quot;1-41784f190c466d990684003a958c9f39&quot;
+#&gt; [1] &quot;1-08aef850a23f5ff95869c9cf5d9604dc&quot;
 #&gt; 
 #&gt; [[1]]$name
-#&gt; [1] &quot;leo&quot;
+#&gt; [1] &quot;samson&quot;
 #&gt; 
 #&gt; [[1]]$color
-#&gt; [1] &quot;blue&quot;
+#&gt; [1] &quot;red&quot;
 #&gt; 
 #&gt; [[1]]$furry
-#&gt; [1] TRUE
+#&gt; [1] FALSE
 #&gt; 
 #&gt; [[1]]$size
-#&gt; [1] 1
+#&gt; [1] 3
 #&gt; 
 #&gt; 
 #&gt; [[2]]
 #&gt; [[2]]$`_id`
-#&gt; [1] &quot;e6bb43092edaf8fd987434b8a30cfbdf&quot;
+#&gt; [1] &quot;901e4bf214fb50db456d3ef8ec00167e&quot;
 #&gt; 
 #&gt; [[2]]$`_rev`
-#&gt; [1] &quot;1-08aef850a23f5ff95869c9cf5d9604dc&quot;
+#&gt; [1] &quot;1-953d3cfbbebb977fb75940c2bb0c93a1&quot;
 #&gt; 
 #&gt; [[2]]$name
-#&gt; [1] &quot;samson&quot;
+#&gt; [1] &quot;matilda&quot;
 #&gt; 
 #&gt; [[2]]$color
-#&gt; [1] &quot;red&quot;
+#&gt; [1] &quot;green&quot;
 #&gt; 
 #&gt; [[2]]$furry
 #&gt; [1] FALSE
 #&gt; 
 #&gt; [[2]]$size
-#&gt; [1] 3
+#&gt; [1] 5
+#&gt; 
+#&gt; [[2]]$age
+#&gt; [1] 2
 #&gt; 
 #&gt; 
 #&gt; [[3]]
 #&gt; [[3]]$`_id`
-#&gt; [1] &quot;e6bb43092edaf8fd987434b8a30d02c1&quot;
+#&gt; [1] &quot;bluecat&quot;
 #&gt; 
 #&gt; [[3]]$`_rev`
-#&gt; [1] &quot;1-73443af61b0149e4c3e138b870e72602&quot;
+#&gt; [1] &quot;1-41784f190c466d990684003a958c9f39&quot;
 #&gt; 
 #&gt; [[3]]$name
-#&gt; [1] &quot;matilda&quot;
+#&gt; [1] &quot;leo&quot;
 #&gt; 
 #&gt; [[3]]$color
-#&gt; [1] &quot;green&quot;
+#&gt; [1] &quot;blue&quot;
 #&gt; 
 #&gt; [[3]]$furry
-#&gt; [1] FALSE
+#&gt; [1] TRUE
 #&gt; 
 #&gt; [[3]]$size
-#&gt; [1] 5
+#&gt; [1] 1
 </code></pre>
 
 <p>Search for cats that are red</p>
@@ -525,7 +508,7 @@ not in the second. Using a document id is optional.</p>
 <pre><code class="r">db_query(x, dbname = &quot;cats&quot;, selector = list(color = &quot;red&quot;))$docs
 #&gt; [[1]]
 #&gt; [[1]]$`_id`
-#&gt; [1] &quot;e6bb43092edaf8fd987434b8a30cfbdf&quot;
+#&gt; [1] &quot;901e4bf214fb50db456d3ef8ec000cfd&quot;
 #&gt; 
 #&gt; [[1]]$`_rev`
 #&gt; [1] &quot;1-08aef850a23f5ff95869c9cf5d9604dc&quot;
@@ -545,50 +528,30 @@ not in the second. Using a document id is optional.</p>
 
 <p>Search for cats that are furry</p>
 
-<pre><code class="r">db_query(x, dbname = &quot;cats&quot;, selector = list(size = list(`$gt` = 2)))$docs
+<pre><code class="r">db_query(x, dbname = &quot;cats&quot;, selector = list(furry = TRUE))$docs
 #&gt; [[1]]
 #&gt; [[1]]$`_id`
-#&gt; [1] &quot;e6bb43092edaf8fd987434b8a30cfbdf&quot;
+#&gt; [1] &quot;bluecat&quot;
 #&gt; 
 #&gt; [[1]]$`_rev`
-#&gt; [1] &quot;1-08aef850a23f5ff95869c9cf5d9604dc&quot;
+#&gt; [1] &quot;1-41784f190c466d990684003a958c9f39&quot;
 #&gt; 
 #&gt; [[1]]$name
-#&gt; [1] &quot;samson&quot;
+#&gt; [1] &quot;leo&quot;
 #&gt; 
 #&gt; [[1]]$color
-#&gt; [1] &quot;red&quot;
+#&gt; [1] &quot;blue&quot;
 #&gt; 
 #&gt; [[1]]$furry
-#&gt; [1] FALSE
+#&gt; [1] TRUE
 #&gt; 
 #&gt; [[1]]$size
-#&gt; [1] 3
-#&gt; 
-#&gt; 
-#&gt; [[2]]
-#&gt; [[2]]$`_id`
-#&gt; [1] &quot;e6bb43092edaf8fd987434b8a30d02c1&quot;
-#&gt; 
-#&gt; [[2]]$`_rev`
-#&gt; [1] &quot;1-73443af61b0149e4c3e138b870e72602&quot;
-#&gt; 
-#&gt; [[2]]$name
-#&gt; [1] &quot;matilda&quot;
-#&gt; 
-#&gt; [[2]]$color
-#&gt; [1] &quot;green&quot;
-#&gt; 
-#&gt; [[2]]$furry
-#&gt; [1] FALSE
-#&gt; 
-#&gt; [[2]]$size
-#&gt; [1] 5
+#&gt; [1] 1
 </code></pre>
 
 <p>Return only certain fields</p>
 
-<pre><code class="r">db_query(x, dbname = &quot;cats&quot;, 
+<pre><code class="r">db_query(x, dbname = &quot;cats&quot;,
          selector = list(size = list(`$gt` = 2)),
          fields = c(&quot;name&quot;, &quot;color&quot;))$docs
 #&gt; [[1]]
@@ -605,6 +568,21 @@ not in the second. Using a document id is optional.</p>
 #&gt; 
 #&gt; [[2]]$color
 #&gt; [1] &quot;green&quot;
+</code></pre>
+
+<p>Convert the result of a query into a data.frame using <code>jsonlite</code></p>
+
+<pre><code class="r">library(&#39;jsonlite&#39;)
+res &lt;- db_query(x, dbname = &quot;cats&quot;,
+                 selector = list(`_id` = list(`$gt` = NULL)),
+                 fields = c(&quot;name&quot;, &quot;color&quot;, &quot;furry&quot;, &quot;size&quot;, &quot;age&quot;),
+                 as = &quot;json&quot;)
+
+fromJSON(res)$docs
+#&gt;      name color furry size age
+#&gt; 1  samson   red FALSE    3  NA
+#&gt; 2 matilda green FALSE    5   2
+#&gt; 3     leo  blue  TRUE    1  NA
 </code></pre>
 
 </body>

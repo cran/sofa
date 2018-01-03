@@ -3,20 +3,20 @@
 #' @name attachments
 #' @template all
 #' @template return
-#' @param dbname (charcter) Database name. Required.
-#' @param docid (charcter) Document ID. Required.
-#' @param attachment (charcter) A file name. Required.
-#' @param attname (charcter) Attachment name. Required.
+#' @param dbname (character) Database name. Required.
+#' @param docid (character) Document ID. Required.
+#' @param attachment (character) A file name. Required.
+#' @param attname (character) Attachment name. Required.
 #' @param type (character) one of raw (default) or text. required.
 #' @details Methods:
-#' \itemize{
-#'  \item doc_attach_create - create an attachment
-#'  \item doc_attach_info - get info (headers) for an attachment
-#'  \item doc_attach_get - get an attachment. this method does not attempt
+#'
+#' - `doc_attach_create` - create an attachment
+#' - `doc_attach_info` - get info (headers) for an attachment
+#' - `doc_attach_get` - get an attachment. this method does not attempt
 #'  to read the object into R, but only gets the raw bytes or plain
 #'  text. See examples for how to read some attachment types
-#'  \item doc_attach_delete - delete and attachment
-#' }
+#' - `doc_attach_delete` - delete and attachment
+#'
 #' @examples \dontrun{
 #' (x <- Cushion$new())
 #'
@@ -60,7 +60,7 @@
 #'
 #' # get an attachment (GET request)
 #' res <- doc_attach_get(x, "drinksdb", docid="asoda",
-#'   attname="mtcarstable.csv", type = "text")
+#'   attname="mtcarstable.csv", as = "text")
 #' read.csv(text = res)
 #' doc_attach_get(x, "drinksdb", docid="asoda", attname="img.png")
 #' doc_attach_get(x, "drinksdb", docid="asoda", attname="plot.pdf")
@@ -80,11 +80,13 @@ doc_attach_create <- function(cushion, dbname, docid, attachment, attname,
   if (!file.exists(attachment)) stop("the file does not exist", call. = FALSE)
   revget <- db_revisions(cushion, dbname = dbname, docid = docid)[1]
   url <- file.path(cushion$make_url(), dbname, docid, attname)
-  sofa_PUT(url, as,
-           query = list(rev = revget),
-           body = upload_file(attachment),
-           content_type(mime::guess_type(attachment)),
-           cushion$get_headers(), ...)
+  sofa_PUT_dac(url, as,
+           body = crul::upload(attachment),
+           rev = revget,
+           headers = c(list(
+            `Content-Type` = mime::guess_type(attachment)),
+            cushion$get_headers()),
+           auth = cushion$get_auth(), ...)
 }
 
 #' @export
@@ -92,7 +94,7 @@ doc_attach_create <- function(cushion, dbname, docid, attachment, attname,
 doc_attach_info <- function(cushion, dbname, docid, attname, ...) {
   check_cushion(cushion)
   url <- file.path(cushion$make_url(), dbname, docid, attname)
-  sofa_HEAD(url, cushion$get_headers(), ...)
+  sofa_HEAD(url, cushion$get_headers(), cushion$get_auth(), ...)
 }
 
 #' @export
@@ -100,10 +102,15 @@ doc_attach_info <- function(cushion, dbname, docid, attname, ...) {
 doc_attach_get <- function(cushion, dbname, docid, attname, type = "raw", ...) {
   check_cushion(cushion)
   url <- file.path(cushion$make_url(), dbname, docid, attname)
-  as <- match.arg(as, c('list','json'))
-  res <- GET(url, content_type_json(), cushion$get_headers(), ...)
+  revget <- db_revisions(cushion, dbname = dbname, docid = docid)[1]
+  type <- match.arg(type, c('text', 'raw'))
+  cli <- crul::HttpClient$new(
+    url = url,
+    headers = sc(c(ct_json, cushion$get_headers(), list(`If-Match` = revget))),
+    opts = sc(c(cushion$get_auth(), list(...))))
+  res <- cli$get()
   stop_status(res)
-  content(res, as = type, encoding = "UTF-8")
+  if (type == 'raw') res$content else res$parse("UTF-8")
 }
 
 #' @export
@@ -112,5 +119,23 @@ doc_attach_delete <- function(cushion, dbname, docid, attname, as = "list", ...)
   check_cushion(cushion)
   revget <- db_revisions(cushion, dbname = dbname, docid = docid)[1]
   url <- file.path(cushion$make_url(), dbname, docid, attname)
-  sofa_DELETE(url, as, cushion$get_headers(), query = list(rev = revget), ...)
+  sofa_DELETE(url, as,
+              sc(c(cushion$get_headers(),
+                   list(Accept = "application/json", `If-Match` = revget))),
+              cushion$get_auth(), ...)
 }
+
+sofa_PUT_dac <- function(url, as = 'list', body, rev,
+                         encode = "json", headers = NULL, auth = NULL, ...){
+
+  as <- match.arg(as, c('list','json'))
+  cli <- crul::HttpClient$new(
+    url = url,
+    headers = sc(c(headers, list(`If-Match` = rev))),
+    opts = sc(c(auth, list(...))))
+  res <- cli$put(body = body, encode = encode)
+  res$raise_for_status()
+  tt <- res$parse('UTF-8')
+  if (as == 'json') tt else jsonlite::fromJSON(tt, FALSE)
+}
+

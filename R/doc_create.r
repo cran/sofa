@@ -4,10 +4,10 @@
 #' @template all
 #' @template return
 #' @param dbname Database name3
-#' @param doc Document content, can be character string or a list. The character
-#' type can be XML as well, if embedded in JSON. When the document is
-#' retrieved via \code{\link{doc_get}}, the XML is given back and you can parse
-#' it as normal.
+#' @param doc Document content, can be character string or a list.
+#' The character type can be XML as well, if embedded in JSON. When
+#' the document is retrieved via [doc_get()], the XML is given back and
+#' you can parse it as normal.
 #' @param docid Document ID
 #' @param how (character) One of rows (default) or columns. If rows, each row
 #' becomes a separate document; if columns, each column becomes a separate
@@ -15,16 +15,16 @@
 #'
 #' @details Documents can have attachments just like email. There are two ways
 #' to use attachments: the first one is via a separate REST call
-#' (see \code{\link{doc_attach_create}}); the second is inline within your
+#' (see [doc_attach_create()]); the second is inline within your
 #' document, you can do so with this fxn. See
-#' \url{http://wiki.apache.org/couchdb/HTTP_Document_API#Attachments} for help
+#' <http://wiki.apache.org/couchdb/HTTP_Document_API#Attachments> for help
 #' on formatting json appropriately.
 #'
 #' Note that you can create documents from a data.frame with this function,
-#' where each row or column is a seprate document. However, this function does
-#' not use the bulk API
-#' \url{https://couchdb.readthedocs.org/en/latest/api/database/bulk-api.html#db-bulk-docs}
-#' - see \code{\link{db_bulk_create}} and \code{\link{db_bulk_update}} to
+#' where each row or column is a separate document. However, this function
+#' does not use the bulk API
+#' <https://couchdb.readthedocs.org/en/latest/api/database/bulk-api.html#db-bulk-docs>
+#' - see [db_bulk_create()] and [db_bulk_update()] to
 #' create or update documents with the bulk API - which should be much faster
 #' for a large number of documents.
 #' @examples \dontrun{
@@ -33,7 +33,7 @@
 #' if ("sofadb" %in% db_list(x)) {
 #'   invisible(db_delete(x, dbname="sofadb"))
 #' }
-#' db_create(x, dbname='sofadb')
+#' db_create(x, 'sofadb')
 #'
 #' # write a document WITH a name (uses PUT)
 #' doc1 <- '{"name": "drink", "beer": "IPA", "score": 5}'
@@ -51,7 +51,7 @@
 #' doc3 <- '{"planet": "mars", "size": "smallish"}'
 #' doc_create(x, doc3, dbname="sofadb")
 #' ## assigns a UUID instead of a user given name
-#' alldocs(x, dbname = "sofadb")
+#' db_alldocs(x, dbname = "sofadb")
 #'
 #' # write an xml document WITH a name (uses PUT). xml is written as xml in
 #' # couchdb, just wrapped in json, when you get it out it will be as xml
@@ -61,7 +61,7 @@
 #'
 #' # You can pass in lists that autoconvert to json internally
 #' doc1 <- list(name = "drink", beer = "IPA", score = 9)
-#' doc_create(doc1, dbname="sofadb", docid="goodbeer")
+#' doc_create(x, dbname="sofadb", doc1, docid="goodbeer")
 #'
 #' # Write directly from a data.frame
 #' ## Each row or column becomes a separate document
@@ -88,10 +88,16 @@ doc_create_ <- function(doc, cushion, dbname, docid = NULL,
 doc_create_.character <- function(doc, cushion, dbname, docid = NULL,
                                  how = 'rows', as = 'list', ...) {
   url <- sprintf("%s/%s", cushion$make_url(), dbname)
+  docex <- tryCatch(doc_head(cushion, dbname, docid), error = function(e) e)
+  rev <- if (inherits(docex, "error")) NULL else docex$rev
   if (!is.null(docid)) {
-    sofa_PUT(paste0(url, "/", docid), as, body = check_inputs(doc), cushion$get_headers(), ...)
+    sofa_PUT_doc_create(file.path(url, docid), as, body = check_inputs(doc),
+      encode = "json", rev = rev,
+      headers = c(cushion$get_headers(), list(`Accept` = "application/json")),
+      auth = cushion$get_auth(), ...)
   } else {
-    sofa_POST(url, as, body = check_inputs(doc), ...)
+    sofa_POST(url, as, body = check_inputs(doc),
+              headers = cushion$get_headers(), auth = cushion$get_auth(), ...)
   }
 }
 
@@ -99,9 +105,11 @@ doc_create_.list <- function(doc, cushion, dbname, docid = NULL,
                                  how = 'rows', as = 'list', ...) {
   url <- sprintf("%s/%s", cushion$make_url(), dbname)
   if (!is.null(docid)) {
-    sofa_PUT(paste0(url, "/", docid), as, body = check_inputs(doc), cushion$get_headers(), ...)
+    sofa_PUT(paste0(url, "/", docid), as, body = check_inputs(doc),
+             headers = cushion$get_headers(), auth = cushion$get_auth(), ...)
   } else {
-    sofa_POST(url, as, body = check_inputs(doc), ...)
+    sofa_POST(url, as, body = check_inputs(doc),
+              headers = cushion$get_headers(), auth = cushion$get_auth(), ...)
   }
 }
 
@@ -109,5 +117,20 @@ doc_create_.data.frame <- function(doc, cushion, dbname, docid = NULL,
                             how = 'rows', as = 'list', ...) {
   url <- sprintf("%s/%s", cushion$make_url(), dbname)
   each <- parse_df(doc, how = how)
-  lapply(each, function(x) sofa_POST(url, as, body = x, cushion$get_headers(), ...))
+  lapply(each, function(x) {
+    sofa_POST(url, as, body = x,
+              headers = cushion$get_headers(), auth = cushion$get_auth(), ...)
+  })
+}
+
+sofa_PUT_doc_create <- function(url, as = 'list', body, encode = "json", rev,
+                                headers = NULL, auth = NULL, ...){
+  as <- match.arg(as, c('list','json'))
+  cli <- crul::HttpClient$new(
+    url = url,
+    headers = sc(c(ct_json, headers, list(`If-Match` = rev))),
+    opts = sc(c(auth, list(...))))
+  res <- cli$put(body = body, encode = encode)
+  txt <- res$parse("UTF-8")
+  if (as == 'json') txt else jsonlite::fromJSON(txt, FALSE)
 }

@@ -2,7 +2,6 @@
 % Please edit documentation in R/design.R
 \name{design}
 \alias{design}
-\alias{design_copy}
 \alias{design_create}
 \alias{design_create_}
 \alias{design_delete}
@@ -23,16 +22,14 @@ design_get(cushion, dbname, design, as = "list", ...)
 design_head(cushion, dbname, design, ...)
 
 design_info(cushion, dbname, design, ...)
-
-design_copy(cushion, dbname, design, design_to, as = "list", ...)
 }
 \arguments{
-\item{cushion}{A \code{Cushion} object. Required.}
+\item{cushion}{A \code{\link{Cushion}} object. Required.}
 
 \item{dbname}{(character) Database name. required.}
 
 \item{design}{(character) Design document name. this is the design name
-without \strong{_design/}, which is prepended internally. required.}
+without \code{_design/}, which is prepended internally. required.}
 
 \item{fxnname}{(character) A function name. required for \code{view_put}
 and \code{view_put_}}
@@ -41,15 +38,9 @@ and \code{view_put_}}
 
 \item{as}{(character) One of list (default) or json}
 
-\item{...}{Curl args passed on to one of the HTTP verbs (e.g,.
-\code{\link[httr]{GET}}, \code{\link[httr]{POST}}, \code{\link[httr]{PUT}},
-etc.)}
+\item{...}{Curl args passed on to \code{\link[crul]{HttpClient}}}
 
 \item{fxn}{(character) a javascript function. required for \code{view_put_}}
-
-\item{design_to}{(character) Design document name. this is the design name
-without \strong{_design/}, which is prepended internally. required for
-\code{design_copy}}
 }
 \value{
 JSON as a character string or a list (determined by the
@@ -108,7 +99,7 @@ design_get(x, dbname='omdb', design='view2')
 design_get(x, dbname='omdb', design='view5')
 
 # Search using a view
-res <- view_search(x, dbname='omdb', design='view2')
+res <- design_search(x, dbname='omdb', design='view2')
 head(
   do.call(
     "rbind.data.frame",
@@ -116,16 +107,12 @@ head(
   )
 )
 
-res <- view_search(x, dbname='omdb', design='view5')
+res <- design_search(x, dbname='omdb', design='view5')
 head(
   structure(do.call(
     "rbind.data.frame",
     lapply(res$rows, function(x) x$value)
   ), .Names = c('Country', 'imdbRating'))
 )
-
-# copy a design doc to another design doc
-design_copy(x, dbname = "omdb", design = "view2", design_to = "view22")
 }
 }
-

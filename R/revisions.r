@@ -6,7 +6,7 @@
 #' @param dbname Database name
 #' @param docid Document ID
 #' @param simplify (logical) Simplify to character vector of revision ids.
-#' If \code{FALSE}, gives back availabilit info too. Default: \code{TRUE}
+#' If `FALSE`, gives back availability info too. Default: `TRUE`
 #' @examples \dontrun{
 #' (x <- Cushion$new())
 #'
@@ -24,11 +24,17 @@
 #' db_revisions(x, dbname="sofadb", docid="abeer", as='json')
 #' db_revisions(x, dbname="sofadb", docid="abeer", simplify=FALSE, as='json')
 #' }
-db_revisions <- function(cushion, dbname, docid, simplify=TRUE, as='list', ...) {
+db_revisions <- function(cushion, dbname, docid, simplify=TRUE,
+                         as='list', ...) {
+
   check_cushion(cushion)
   call_ <- sprintf("%s/%s/%s", cushion$make_url(), dbname, docid)
   tmp <- sofa_GET(call_, as = "list", query = list(revs_info = 'true'),
-                  cushion$get_headers(), ...)
-  revs <- if (simplify) vapply(tmp$`_revs_info`, "[[", "", "rev") else tmp$`_revs_info`
+                  cushion$get_headers(), cushion$get_auth(), ...)
+  revs <- if (simplify) {
+    vapply(tmp$`_revs_info`, "[[", "", "rev")
+  } else {
+    tmp$`_revs_info`
+  }
   if (as == 'json') jsonlite::toJSON(revs) else revs
 }

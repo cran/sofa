@@ -9,7 +9,7 @@ db_query(cushion, dbname, query = NULL, selector = NULL, limit = NULL,
   as = "list", ...)
 }
 \arguments{
-\item{cushion}{A \code{Cushion} object. Required.}
+\item{cushion}{A \code{\link{Cushion}} object. Required.}
 
 \item{dbname}{Database name}
 
@@ -37,14 +37,11 @@ information provided in the section on filtering fields. Optional
 See \url{http://docs.couchdb.org/en/2.0.0/api/database/find.html#find-filter}}
 
 \item{use_index}{(json) - Instruct a query to use a specific index.
-Specified either as "<design_document>" or ["<design_document>",
-"<index_name>"]. Optional}
+Specified either as \code{<design_document>} or \code{["<design_document>", "<index_name>"]}. Optional}
 
 \item{as}{(character) One of list (default) or json}
 
-\item{...}{Curl args passed on to one of the HTTP verbs (e.g,.
-\code{\link[httr]{GET}}, \code{\link[httr]{POST}}, \code{\link[httr]{PUT}},
-etc.)}
+\item{...}{Curl args passed on to \code{\link[crul]{HttpClient}}}
 }
 \value{
 JSON as a character string or a list (determined by the
@@ -68,7 +65,7 @@ if ("omdb" \%in\% db_list(x)) {
 db_create(x, dbname='omdb')
 
 ## add some documents
-invisible(bulk_create(x, "omdb", strs))
+invisible(db_bulk_create(x, "omdb", strs))
 
 ## query all in one json blob
 db_query(x, dbname = "omdb", query = '{
@@ -86,10 +83,18 @@ db_query(x, dbname = "omdb",
 db_query(x, dbname = "omdb",
   selector = list(`_id` = list(`$gt` = NULL)), limit = 3)
 
+# fields
+## single field works
 db_query(x, dbname = "omdb",
   selector = list(`_id` = list(`$gt` = NULL)), limit = 3,
   fields = c('_id', 'Actors', 'imdbRating'))
 
+## as well as many fields
+db_query(x, dbname = "omdb",
+  selector = list(`_id` = list(`$gt` = NULL)), limit = 3,
+  fields = '_id')
+
+## other queries
 db_query(x, dbname = "omdb",
   selector = list(Year = list(`$gt` = "2013")))
 
@@ -123,4 +128,3 @@ db_query(x, dbname = "omdb", selector = list(
 
 }
 }
-

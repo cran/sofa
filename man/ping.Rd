@@ -2,33 +2,30 @@
 % Please edit documentation in R/ping.r
 \name{ping}
 \alias{ping}
-\title{Ping a couchdb server}
+\title{Ping a CouchDB server}
 \usage{
 ping(cushion, as = "list", ...)
 }
 \arguments{
-\item{cushion}{A \code{Cushion} object. Required.}
+\item{cushion}{A \code{\link{Cushion}} object. Required.}
 
 \item{as}{(character) One of list (default) or json}
 
-\item{...}{Curl args passed on to one of the HTTP verbs (e.g,.
-\code{\link[httr]{GET}}, \code{\link[httr]{POST}}, \code{\link[httr]{PUT}},
-etc.)}
+\item{...}{Curl args passed on to \code{\link[crul]{HttpClient}}}
 }
 \value{
 JSON as a character string or a list (determined by the
 \code{as} parameter)
 }
 \description{
-Ping a couchdb server
+Ping a CouchDB server
 }
 \examples{
 \dontrun{
-# initialize a couchdb connection
+# initialize a CouchDB connection
 (x <- Cushion$new())
 
 ping(x)
 ping(x, as = "json")
 }
 }
-

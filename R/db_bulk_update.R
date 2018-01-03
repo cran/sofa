@@ -11,16 +11,15 @@
 #' becomes a separate document; if columns, each column becomes a separate
 #' document.
 #'
-#' @return Either a list or json (depending on \code{as} parameter), with
+#' @return Either a list or json (depending on `as` parameter), with
 #' each element an array of key:value pairs:
-#' \itemize{
-#'  \item ok - whether creation was successful
-#'  \item id - the document id
-#'  \item rev - the revision id
-#' }
+#'
+#' - ok - whether creation was successful
+#' - id - the document id
+#' - rev - the revision id
 #'
 #' @examples \dontrun{
-#' # initialize a couchdb connection
+#' # initialize a CouchDB connection
 #' (x <- Cushion$new())
 #'
 #' row.names(mtcars) <- NULL
@@ -66,5 +65,6 @@ db_bulk_update_.data.frame <- function(doc, cushion, dbname, docid = NULL,
   info <- db_alldocs(cushion, dbname = dbname)
   each <- Map(function(x, y) utils::modifyList(x, list(`_id` = y$id, `_rev` = y$value$rev)), each, info$rows)
   body <- jsonlite::toJSON(list(docs = each), auto_unbox = TRUE)
-  sofa_bulk(file.path(url, "_bulk_docs"), as, body = body, cushion$get_headers(), ...)
+  sofa_bulk(file.path(url, "_bulk_docs"), as, body = body,
+            cushion$get_headers(), cushion$get_auth(), ...)
 }
