@@ -5,13 +5,16 @@
 #' @template return
 #' @examples \dontrun{
 #' # initialize a CouchDB connection
-#' (x <- Cushion$new())
+#' user <- Sys.getenv("COUCHDB_TEST_USER")
+#' pwd <- Sys.getenv("COUCHDB_TEST_PWD")
+#' (x <- Cushion$new(user=user, pwd=pwd))
 #'
+#' # call ping on the cushion object, or pass the cushion to ping()
+#' x$ping()
 #' ping(x)
 #' ping(x, as = "json")
 #' }
 ping <- function(cushion, as = 'list', ...) {
   check_cushion(cushion)
-  sofa_GET(cushion$make_url(), as = as, args = NULL, cushion$get_headers(),
-           cushion$get_auth(), ...)
+  cushion$ping(as, ...)
 }

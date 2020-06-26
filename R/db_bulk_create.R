@@ -22,7 +22,9 @@
 #'
 #' @examples \dontrun{
 #' # initialize a CouchDB connection
-#' (x <- Cushion$new())
+#' user <- Sys.getenv("COUCHDB_TEST_USER")
+#' pwd <- Sys.getenv("COUCHDB_TEST_PWD")
+#' (x <- Cushion$new(user=user, pwd=pwd))
 #'
 #' # From a data.frame
 #' if ("bulktest" %in% db_list(x)) {
@@ -118,10 +120,12 @@ db_bulk_create_.data.frame <- function(doc, cushion, dbname, docid = NULL,
             cushion$get_headers(), cushion$get_auth(), ...)
 }
 
-sofa_bulk <- function(url, as, body, headers, auth = NULL, ...) {
-  cli <- crul::HttpClient$new(url = url, headers = c(ct_json, headers),
+sofa_bulk <- function(url, as, body, headers, auth = NULL,
+  encode = "multipart", ...) {
+  
+  cli <- crul::HttpClient$new(url = url, headers = c(ct_json, a_json, headers),
                               opts = sc(c(auth, list(...))))
-  res <- cli$post(body = body)
+  res <- cli$post(body = body, encode = encode)
   bulk_handle(res, as)
 }
 

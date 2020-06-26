@@ -10,8 +10,16 @@
 \alias{design_info}
 \title{Work with design documents}
 \usage{
-design_create(cushion, dbname, design, fxnname, key = "null", value = "doc",
-  as = "list", ...)
+design_create(
+  cushion,
+  dbname,
+  design,
+  fxnname,
+  key = "null",
+  value = "doc",
+  as = "list",
+  ...
+)
 
 design_create_(cushion, dbname, design, fxnname, fxn, as = "list", ...)
 
@@ -29,7 +37,7 @@ design_info(cushion, dbname, design, ...)
 \item{dbname}{(character) Database name. required.}
 
 \item{design}{(character) Design document name. this is the design name
-without \code{_design/}, which is prepended internally. required.}
+without \verb{_design/}, which is prepended internally. required.}
 
 \item{fxnname}{(character) A function name. required for \code{view_put}
 and \code{view_put_}}
@@ -58,7 +66,9 @@ function yourself.
 }
 \examples{
 \dontrun{
-(x <- Cushion$new())
+user <- Sys.getenv("COUCHDB_TEST_USER")
+pwd <- Sys.getenv("COUCHDB_TEST_PWD")
+(x <- Cushion$new(user=user, pwd=pwd))
 
 file <- system.file("examples/omdb.json", package = "sofa")
 strs <- readLines(file)
@@ -80,7 +90,7 @@ design_create(x, dbname='omdb', design='view5', fxnname="foobar3",
   value="[doc.Country,doc.imdbRating]")
 
 # the harder way, write your own function, but more flexible
-design_create_(x, dbname='omdb', design='view2',
+design_create_(x, dbname='omdb', design='view22',
   fxnname = "stuffthings", fxn = "function(doc){emit(null,doc.Country)}")
 
 # Delete a view
@@ -99,7 +109,7 @@ design_get(x, dbname='omdb', design='view2')
 design_get(x, dbname='omdb', design='view5')
 
 # Search using a view
-res <- design_search(x, dbname='omdb', design='view2')
+res <- design_search(x, dbname='omdb', design='view2', view='foobar2')
 head(
   do.call(
     "rbind.data.frame",
@@ -107,7 +117,7 @@ head(
   )
 )
 
-res <- design_search(x, dbname='omdb', design='view5')
+res <- design_search(x, dbname='omdb', design='view5', view='foobar3')
 head(
   structure(do.call(
     "rbind.data.frame",

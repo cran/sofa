@@ -4,8 +4,7 @@
 \alias{doc_create}
 \title{Create documents to a database.}
 \usage{
-doc_create(cushion, dbname, doc, docid = NULL, how = "rows", as = "list",
-  ...)
+doc_create(cushion, dbname, doc, docid = NULL, how = "rows", as = "list", ...)
 }
 \arguments{
 \item{cushion}{A \code{\link{Cushion}} object. Required.}
@@ -39,7 +38,7 @@ Documents can have attachments just like email. There are two ways
 to use attachments: the first one is via a separate REST call
 (see \code{\link[=doc_attach_create]{doc_attach_create()}}); the second is inline within your
 document, you can do so with this fxn. See
-\url{http://wiki.apache.org/couchdb/HTTP_Document_API#Attachments} for help
+https://docs.couchdb.org/en/latest/api/document/attachments.html for help
 on formatting json appropriately.
 
 Note that you can create documents from a data.frame with this function,
@@ -52,9 +51,25 @@ create or update documents with the bulk API - which should be much faster
 for a large number of documents.
 }
 }
+\section{Digits after the decimal}{
+
+If you have any concern about number of digits after the decimal
+in your documents, make sure to look at \code{digits} in your R options.
+The default value is 7 (see \link{options} for more informnation). You
+can set the value you like with e.g., \code{options(digits = 10)}, and
+get what \code{digits} is set to with \code{getOption("digits")}.
+
+Note that in \code{\link[=doc_create]{doc_create()}} we convert your document to JSON with
+\code{jsonlite::toJSON()} if given as a list, which has a \code{digits} parameter.
+We pass \code{getOption("digits")} to the \code{digits} parameter in
+\code{jsonlite::toJSON()}
+}
+
 \examples{
 \dontrun{
-(x <- Cushion$new())
+user <- Sys.getenv("COUCHDB_TEST_USER")
+pwd <- Sys.getenv("COUCHDB_TEST_PWD")
+(x <- Cushion$new(user=user, pwd=pwd))
 
 if ("sofadb" \%in\% db_list(x)) {
   invisible(db_delete(x, dbname="sofadb"))
@@ -86,18 +101,24 @@ doc_create(x, doc4, dbname="sofadb", docid="somexml")
 doc_get(x, dbname = "sofadb", docid = "somexml")
 
 # You can pass in lists that autoconvert to json internally
-doc1 <- list(name = "drink", beer = "IPA", score = 9)
-doc_create(x, dbname="sofadb", doc1, docid="goodbeer")
+doc1 <- list(name = "drink", type = "soda", score = 9)
+doc_create(x, dbname="sofadb", doc1, docid="gooddrink")
 
 # Write directly from a data.frame
 ## Each row or column becomes a separate document
 ### by rows
+if ("test" \%in\% db_list(x)) {
+  invisible(db_delete(x, dbname="test"))
+}
 db_create(x, dbname = "test")
 doc_create(x, mtcars, dbname="test", how="rows")
 doc_create(x, mtcars, dbname="test", how="columns")
 
-head(iris)
+if ("testiris" \%in\% db_list(x)) {
+  invisible(db_delete(x, dbname="testiris"))
+}
 db_create(x, dbname = "testiris")
+head(iris)
 doc_create(x, iris, dbname = "testiris")
 }
 }

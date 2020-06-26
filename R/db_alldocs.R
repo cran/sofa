@@ -14,10 +14,15 @@
 #' if you give a file path, we'll write data to disk and you'll get back
 #' the file path. by default, we save in the R session
 #' @examples \dontrun{
-#' (x <- Cushion$new())
+#' user <- Sys.getenv("COUCHDB_TEST_USER")
+#' pwd <- Sys.getenv("COUCHDB_TEST_PWD")
+#' (x <- Cushion$new(user=user, pwd=pwd))
 #'
+#' if ("leothelion" %in% db_list(x)) {
+#'   invisible(db_delete(x, dbname="leothelion"))
+#' }
 #' db_create(x, dbname='leothelion')
-#' bulk_create(x, mtcars, dbname="leothelion")
+#' db_bulk_create(x, mtcars, dbname="leothelion")
 #'
 #' db_alldocs(x, dbname="leothelion")
 #' db_alldocs(x, dbname="leothelion", as='json')

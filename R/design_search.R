@@ -66,10 +66,12 @@
 #' Default: `FALSE`
 #' }
 #'
-#' @references <http://docs.couchdb.org/en/latest/api/ddoc/views.html>
+#' @references https://docs.couchdb.org/en/latest/api/ddoc/views.html
 #'
 #' @examples \dontrun{
-#' (x <- Cushion$new())
+#' user <- Sys.getenv("COUCHDB_TEST_USER")
+#' pwd <- Sys.getenv("COUCHDB_TEST_PWD")
+#' (x <- Cushion$new(user=user, pwd=pwd))
 #'
 #' file <- system.file("examples/omdb.json", package = "sofa")
 #' strs <- readLines(file)
@@ -120,6 +122,19 @@
 #' ## limit and skip
 #' design_search(x, dbname='omdb', design='view5', view = 'foobar3',
 #'   params = list(limit = 5, skip = 3))
+#' ## with start and end keys
+#' ### important: the key strings have to be in JSON, so here e.g., 
+#' ###  need to add escaped double quotes
+#' res <- design_search(
+#'   cushion = x,
+#'   dbname = 'omdb',
+#'   design = 'view6',
+#'   view = 'foobar4',
+#'   params = list(
+#'     startkey = "\"c25bbf4fef99408b3e1115374a03f642\"",
+#'     endkey = "\"c25bbf4fef99408b3e1115374a040f11\""
+#'   )
+#' )
 #'
 #' # POST request
 #' ids <- vapply(db_alldocs(x, dbname='omdb')$rows[1:3], "[[", "", "id")
@@ -157,8 +172,13 @@ design_search_many <- function(cushion, dbname, design, view, queries,
   as = 'list', ...) {
 
   check_cushion(cushion)
-  url <- file.path(cushion$make_url(), dbname, "_design", design,
-    "_view", view)
+  if (cushion$version() < 220) {
+    url <- file.path(cushion$make_url(), dbname, "_design", design,
+      "_view", view)
+  } else {
+    url <- file.path(cushion$make_url(), dbname, "_design", design,
+      "_view", view, "queries")
+  }
   sofa_POST(url, as, body = list(queries = queries),
     "json", cushion$get_headers(),
     cushion$get_auth(), ...)
@@ -170,7 +190,8 @@ ds_params_keys <- c(
   "end_key_doc_id", "group", "group_level", "include_docs",
   "attachments", "att_encoding_info", "inclusive_end",
   "limit", "reduce", "skip", "sorted", "stale",
-  "startkey_docid", "start_key_doc_id", "update_seq"
+  "startkey_docid", "start_key_doc_id", "update_seq",
+  "endkey", "end_key", "startkey", "start_key"
 )
 
 ds_body_keys <- c(

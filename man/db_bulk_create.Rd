@@ -4,8 +4,15 @@
 \alias{db_bulk_create}
 \title{Create documents via the bulk API}
 \usage{
-db_bulk_create(cushion, dbname, doc, docid = NULL, how = "rows",
-  as = "list", ...)
+db_bulk_create(
+  cushion,
+  dbname,
+  doc,
+  docid = NULL,
+  how = "rows",
+  as = "list",
+  ...
+)
 }
 \arguments{
 \item{cushion}{A \code{\link{Cushion}} object. Required.}
@@ -44,7 +51,9 @@ Note that row.names are dropped from data.frame inputs.
 \examples{
 \dontrun{
 # initialize a CouchDB connection
-(x <- Cushion$new())
+user <- Sys.getenv("COUCHDB_TEST_USER")
+pwd <- Sys.getenv("COUCHDB_TEST_PWD")
+(x <- Cushion$new(user=user, pwd=pwd))
 
 # From a data.frame
 if ("bulktest" \%in\% db_list(x)) {

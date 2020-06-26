@@ -5,8 +5,16 @@
 \alias{design_search_many}
 \title{Search design documents}
 \usage{
-design_search(cushion, dbname, design, view, params = list(), body = list(),
-  as = "list", ...)
+design_search(
+  cushion,
+  dbname,
+  design,
+  view,
+  params = list(),
+  body = list(),
+  as = "list",
+  ...
+)
 
 design_search_many(cushion, dbname, design, view, queries, as = "list", ...)
 }
@@ -16,7 +24,7 @@ design_search_many(cushion, dbname, design, view, queries, as = "list", ...)
 \item{dbname}{(character) Database name. required.}
 
 \item{design}{(character) Design document name. this is the design name
-without \code{_design/}, which is prepended internally. required.}
+without \verb{_design/}, which is prepended internally. required.}
 
 \item{view}{(character) a view, same as \code{fxn} param in
 \code{\link[=design_create_]{design_create_()}}. required.}
@@ -96,7 +104,9 @@ Default: \code{FALSE}
 
 \examples{
 \dontrun{
-(x <- Cushion$new())
+user <- Sys.getenv("COUCHDB_TEST_USER")
+pwd <- Sys.getenv("COUCHDB_TEST_PWD")
+(x <- Cushion$new(user=user, pwd=pwd))
 
 file <- system.file("examples/omdb.json", package = "sofa")
 strs <- readLines(file)
@@ -147,6 +157,19 @@ design_search(x, dbname='omdb', design='view5', view = 'foobar3',
 ## limit and skip
 design_search(x, dbname='omdb', design='view5', view = 'foobar3',
   params = list(limit = 5, skip = 3))
+## with start and end keys
+### important: the key strings have to be in JSON, so here e.g., 
+###  need to add escaped double quotes
+res <- design_search(
+  cushion = x,
+  dbname = 'omdb',
+  design = 'view6',
+  view = 'foobar4',
+  params = list(
+    startkey = "\"c25bbf4fef99408b3e1115374a03f642\"",
+    endkey = "\"c25bbf4fef99408b3e1115374a040f11\""
+  )
+)
 
 # POST request
 ids <- vapply(db_alldocs(x, dbname='omdb')$rows[1:3], "[[", "", "id")
@@ -163,5 +186,5 @@ design_search_many(x, 'omdb', 'view6', 'foobar4', queries)
 }
 }
 \references{
-\url{http://docs.couchdb.org/en/latest/api/ddoc/views.html}
+https://docs.couchdb.org/en/latest/api/ddoc/views.html
 }

@@ -4,9 +4,21 @@
 \alias{db_changes}
 \title{List changes to a database.}
 \usage{
-db_changes(cushion, dbname, descending = NULL, startkey = NULL,
-  endkey = NULL, since = NULL, limit = NULL, include_docs = NULL,
-  feed = "normal", heartbeat = NULL, filter = NULL, as = "list", ...)
+db_changes(
+  cushion,
+  dbname,
+  descending = NULL,
+  startkey = NULL,
+  endkey = NULL,
+  since = NULL,
+  limit = NULL,
+  include_docs = NULL,
+  feed = "normal",
+  heartbeat = NULL,
+  filter = NULL,
+  as = "list",
+  ...
+)
 }
 \arguments{
 \item{cushion}{A \code{\link{Cushion}} object. Required.}
@@ -63,26 +75,28 @@ sense within R itself.
 }
 \examples{
 \dontrun{
-(x <- Cushion$new())
+user <- Sys.getenv("COUCHDB_TEST_USER")
+pwd <- Sys.getenv("COUCHDB_TEST_PWD")
+(x <- Cushion$new(user=user, pwd=pwd))
 
-if ("leothelion" \%in\% db_list(x)) {
-  invisible(db_delete(x, dbname="leothelion"))
+if ("leoalion" \%in\% db_list(x)) {
+  invisible(db_delete(x, dbname="leoalion"))
 }
-db_create(x, dbname='leothelion')
+db_create(x, dbname='leoalion')
 
 # no changes
-res <- db_changes(x, dbname="leothelion")
+res <- db_changes(x, dbname="leoalion")
 res$results
 
 # create a document
-doc1 <- '{"name": "drink", "beer": "IPA", "score": 5}'
-doc_create(x, dbname="leothelion", doc1, docid="abeer")
+doc1 <- '{"name": "drink", "type": "water", "score": 5}'
+doc_create(x, dbname="leoalion", doc1, docid="awater")
 
 # now there's changes
-res <- db_changes(x, dbname="leothelion")
+res <- db_changes(x, dbname="leoalion")
 res$results
 
 # as JSON
-db_changes(x, dbname="leothelion", as='json')
+db_changes(x, dbname="leoalion", as='json')
 }
 }

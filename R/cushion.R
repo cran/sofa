@@ -1,53 +1,19 @@
 #' sofa connection client
 #'
 #' @export
-#' @param host (character) A base URL (without the transport), e.g.,
-#' `localhost`, `127.0.0.1`, or `foobar.cloudant.com`
-#' @param port (numeric) Port. Remember that if you don't want a port set,
-#' set this parameter to `NULL`. Default: `5984`
-#' @param path (character) context path that is appended to the end of
-#' the url. e.g., `bar` in `http://foo.com/bar`. Default: `NULL`,
-#' ignored
-#' @param transport (character) http or https. Default: http
-#' @param user,pwd (character) user name, and password. these are used in all
-#' requests. if absent, they are not passed to requests
-#' @param headers A named list of headers. These headers are used in all
-#' requests. To use headers in individual requests and not others, pass
-#' in headers via `...` in a function call.
-#'
-#' @details
-#' \strong{Methods}
-#'   \describe{
-#'     \item{\code{ping()}}{
-#'       Ping the CouchDB server
-#'     }
-#'     \item{\code{make_url()}}{
-#'       Construct full base URL from the pieces in the connection object
-#'     }
-#'     \item{\code{get_headers()}}{
-#'       Get list of headers that will be sent with each request
-#'     }
-#'     \item{\code{get_auth()}}{
-#'       Get list of auth values, user and pwd
-#'     }
-#'   }
-#'
 #' @section CouchDB versions:
 #' \pkg{sofa} was built assuming CouchDB version 2 or greater. Some
 #' functionality of this package will work with versions < 2, while
 #' some may not (mango queries, see [db_query()]). I don't
 #' plan to support older CouchDB versions per se.
-#'
-#' @format NULL
-#' @usage NULL
-#'
 #' @return An object of class `Cushion`, with variables accessible for
 #' host, port, path, transport, user, pwd, and headers. Functions are callable
 #' to get headers, and to make the base url sent with all requests.
-#'
 #' @examples \dontrun{
 #' # Create a CouchDB connection client
-#' (x <- Cushion$new())
+#' user <- Sys.getenv("COUCHDB_TEST_USER")
+#' pwd <- Sys.getenv("COUCHDB_TEST_PWD")
+#' (x <- Cushion$new(user=user, pwd=pwd))
 #'
 #' ## metadata
 #' x$host
@@ -57,58 +23,86 @@
 #'
 #' ## ping the CouchDB server
 #' x$ping()
-#'
-#' ## CouchDB server statistics
-#' # stats(x)
+#' 
+#' ## get CouchDB version
+#' x$version()
 #'
 #' # create database
-#' db_create(x, "stuff")
+#' if (!"stuff" %in% db_list(x)) {
+#'   db_create(x, "stuff")
+#' }
 #'
 #' # add documents to a database
-#' db_create(x, "sofadb")
+#' if (!"sofadb" %in% db_list(x)) {
+#'   db_create(x, "sofadb")
+#' }
 #' doc1 <- '{"name": "drink", "beer": "IPA", "score": 5}'
 #' doc_create(x, dbname="sofadb", docid="abeer", doc1)
 #'
 #' # bulk create
-#' db_create(x, "mymtcars")
-#' bulk_create(x, dbname="mymtcars", doc = mtcars)
+#' if (!"mymtcars" %in% db_list(x)) {
+#'   db_create(x, "mymtcars")
+#' }
+#' db_bulk_create(x, dbname="mymtcars", doc = mtcars)
 #' db_list(x)
 #'
 #' ## database info
-#' db_info(x, "bulktest")
+#' db_info(x, "mymtcars")
 #'
 #' ## list dbs
 #' db_list(x)
 #'
 #' ## all docs
-#' alldocs(x, "bulktest", limit = 3)
+#' db_alldocs(x, "mymtcars", limit = 3)
 #'
 #' ## changes
-#' changes(x, "bulktest")
+#' db_changes(x, "mymtcars")
 #'
 #' # With auth
-#' x <- Cushion$new(user = 'sckott', pwd = 'sckott')
+#' # x <- Cushion$new(user = 'sckott', pwd = 'sckott')
 #'
 #' # Using Cloudant
-#' z <- Cushion$new(host = "ropensci.cloudant.com", transport = 'https', port = NULL,
-#'    user = 'ropensci', pwd = Sys.getenv('CLOUDANT_PWD'))
-#' z
-#' db_list(z)
-#' db_create(z, "stuff2")
-#' db_info(z, "stuff2")
-#' alldocs(z, "foobar")
+#' # z <- Cushion$new(host = "ropensci.cloudant.com", transport = 'https', port = NULL,
+#' #   user = 'ropensci', pwd = Sys.getenv('CLOUDANT_PWD'))
+#' # z
+#' # db_list(z)
+#' # db_create(z, "stuff2")
+#' # db_info(z, "stuff2")
+#' # db_alldocs(z, "foobar")
 #' }
 Cushion <- R6::R6Class(
   "Cushion",
   public = list(
+    #' @field host (character) host
     host = '127.0.0.1',
+    #' @field port (integer) port
     port = 5984,
+    #' @field path (character) url path, if any
     path = NULL,
+    #' @field transport (character) transport schema, (http|https)
     transport = 'http',
+    #' @field user (character) username
     user = NULL,
+    #' @field pwd (character) password
     pwd = NULL,
+    #' @field headers (list) named list of headers
     headers = NULL,
 
+    #' @description Create a new `Cushion` object
+    #' @param host (character) A base URL (without the transport), e.g.,
+    #' `localhost`, `127.0.0.1`, or `foobar.cloudant.com`
+    #' @param port (numeric) Port. Remember that if you don't want a port set,
+    #' set this parameter to `NULL`. Default: `5984`
+    #' @param path (character) context path that is appended to the end of
+    #' the url. e.g., `bar` in `http://foo.com/bar`. Default: `NULL`,
+    #' ignored
+    #' @param transport (character) http or https. Default: http
+    #' @param user,pwd (character) user name, and password. these are used in all
+    #' requests. if absent, they are not passed to requests
+    #' @param headers A named list of headers. These headers are used in all
+    #' requests. To use headers in individual requests and not others, pass
+    #' in headers via `...` in a function call.
+    #' @return A new `Cushion` object
     initialize = function(host, port, path, transport, user, pwd, headers) {
       if (!missing(host)) self$host <- host
       if (!missing(port)) self$port <- port
@@ -122,6 +116,9 @@ Cushion <- R6::R6Class(
       if (!missing(headers)) self$headers <- headers
     },
 
+    #' @description print method for `Cushion`
+    #' @param x self
+    #' @param ... ignored
     print = function() {
       cat("<sofa - cushion> ", sep = "\n")
       cat(paste0("  transport: ", self$transport), sep = "\n")
@@ -135,10 +132,16 @@ Cushion <- R6::R6Class(
       invisible(self)
     },
 
-    ping = function(...) {
-      sofa_GET(self$make_url(), ...)
+    #' @description Ping the CouchDB server
+    #' @param as (character) One of list (default) or json
+    #' @param ... curl options passed to [crul::verb-GET]
+    ping = function(as = 'list', ...) {
+      sofa_GET(self$make_url(), as = as, query = NULL,
+        headers = self$get_headers(), auth = self$get_auth(), ...)
     },
 
+    #' @description Construct full base URL from the pieces in the
+    #' connection object
     make_url = function() {
       tmp <- sprintf("%s://%s", self$transport, self$host)
       if (!is.null(self$port)) {
@@ -150,8 +153,21 @@ Cushion <- R6::R6Class(
       tmp
     },
 
+    #' @description Get list of headers that will be sent with
+    #' each request
     get_headers = function() self$headers,
-    get_auth = function() private$auth_headers
+    #' @description Get list of auth values, user and pwd
+    get_auth = function() private$auth_headers,
+    #' @description Get the CouchDB version as a numeric
+    version = function() {
+      z <- self$ping()
+      ver <- as.numeric(paste0(strx(z$version, '[0-9]'), collapse=""))
+      if (nchar(ver) < 3) {
+        ver <- as.numeric(paste0(c(ver, rep("0", times=3-nchar(ver))),
+          collapse=""))
+      }
+      return(ver)
+    }
   ),
 
   private = list(
@@ -164,3 +180,5 @@ check_cushion <- function(x) {
     stop("input must be a sofa Cushion object, see ?Cushion", call. = FALSE)
   }
 }
+
+strx <- function(str, pattern) regmatches(str, gregexpr(pattern, str))[[1]]

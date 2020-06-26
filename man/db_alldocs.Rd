@@ -4,9 +4,18 @@
 \alias{db_alldocs}
 \title{List all docs in a given database.}
 \usage{
-db_alldocs(cushion, dbname, descending = NULL, startkey = NULL,
-  endkey = NULL, limit = NULL, include_docs = FALSE, as = "list",
-  disk = NULL, ...)
+db_alldocs(
+  cushion,
+  dbname,
+  descending = NULL,
+  startkey = NULL,
+  endkey = NULL,
+  limit = NULL,
+  include_docs = FALSE,
+  as = "list",
+  disk = NULL,
+  ...
+)
 }
 \arguments{
 \item{cushion}{A \code{\link{Cushion}} object. Required.}
@@ -41,10 +50,15 @@ List all docs in a given database.
 }
 \examples{
 \dontrun{
-(x <- Cushion$new())
+user <- Sys.getenv("COUCHDB_TEST_USER")
+pwd <- Sys.getenv("COUCHDB_TEST_PWD")
+(x <- Cushion$new(user=user, pwd=pwd))
 
+if ("leothelion" \%in\% db_list(x)) {
+  invisible(db_delete(x, dbname="leothelion"))
+}
 db_create(x, dbname='leothelion')
-bulk_create(x, mtcars, dbname="leothelion")
+db_bulk_create(x, mtcars, dbname="leothelion")
 
 db_alldocs(x, dbname="leothelion")
 db_alldocs(x, dbname="leothelion", as='json')

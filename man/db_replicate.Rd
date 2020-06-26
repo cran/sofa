@@ -34,8 +34,11 @@ e.g., Cloudant, Iriscouch
 }
 \examples{
 \dontrun{
+if (interactive()) {
 ## create a connection
-(x <- Cushion$new())
+user <- Sys.getenv("COUCHDB_TEST_USER")
+pwd <- Sys.getenv("COUCHDB_TEST_PWD")
+(x <- Cushion$new(user=user, pwd=pwd))
 
 # Create a database locally
 db_list(x)
@@ -67,5 +70,6 @@ doc_get(z, dbname = "hello_earth", docid='R_rules')
 
 ## cleanup - delete the database
 db_delete(z, 'hello_earth')
+}
 }
 }
